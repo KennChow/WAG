@@ -36,16 +36,15 @@ export const SITE = {
   ],
 
   /**
-   * giscus 评论。四个值需要你自己补：
-   *   1. 仓库 Settings → General → Features 勾选 Discussions
-   *   2. 打开 https://giscus.app ，填入仓库，选好分类，页面会生成 repoId / categoryId
-   * 留空时评论区不渲染，不影响构建。
+   * giscus 评论，基于 GitHub Discussions，数据留在本仓库。
+   * repoId / categoryId 是 GitHub 的 node id，换仓库或换分类时要一并更新，
+   * 可从 https://giscus.app 重新生成。留空时评论区静默不渲染，不影响构建。
    */
   giscus: {
     repo: 'KennChow/WAG',
-    repoId: '',
+    repoId: 'R_kgDOUMnVZQ',
     category: 'Announcements',
-    categoryId: '',
+    categoryId: 'DIC_kwDOUMnVZc4DEw_e',
     mapping: 'pathname',
     reactionsEnabled: '1',
     lang: 'zh-CN',
