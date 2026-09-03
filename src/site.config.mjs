@@ -46,7 +46,9 @@ export const SITE = {
     category: 'Announcements',
     categoryId: 'DIC_kwDOUMnVZc4DEw_e',
     mapping: 'pathname',
+    strict: '0',
     reactionsEnabled: '1',
+    inputPosition: 'bottom',
     lang: 'zh-CN',
   },
 }
