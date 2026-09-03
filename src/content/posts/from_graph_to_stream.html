@@ -1,0 +1,714 @@
+<title>从图到流</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+
+<style>
+:root {
+  --paper:      #EFF3F6;
+  --surface:    #FFFFFF;
+  --surface-2:  #F7F9FB;
+  --ink:        #13202B;
+  --ink-soft:   #3A4C5C;
+  --muted:      #66788A;
+  --rule:       #D3DDE5;
+  --rule-soft:  #E3EAEF;
+  --signal:     #A93A24;
+  --signal-bg:  #FBEDE9;
+  --s0:         #2A5C8A;
+  --s1:         #1C7C6B;
+  --s2:         #7B6320;
+
+  --measure: 66ch;
+  --step--1: 0.82rem;
+  --step-0:  1.0rem;
+  --step-1:  1.24rem;
+  --step-2:  1.62rem;
+  --step-4:  3.1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:     #0D151C;
+    --surface:   #141F28;
+    --surface-2: #18242E;
+    --ink:       #DEE8EF;
+    --ink-soft:  #B3C4D0;
+    --muted:     #849AAA;
+    --rule:      #26343F;
+    --rule-soft: #1E2B35;
+    --signal:    #E37B5C;
+    --signal-bg: #2C1A15;
+    --s0:        #6BA3D6;
+    --s1:        #4FBCA5;
+    --s2:        #C4A44A;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper:     #0D151C;
+  --surface:   #141F28;
+  --surface-2: #18242E;
+  --ink:       #DEE8EF;
+  --ink-soft:  #B3C4D0;
+  --muted:     #849AAA;
+  --rule:      #26343F;
+  --rule-soft: #1E2B35;
+  --signal:    #E37B5C;
+  --signal-bg: #2C1A15;
+  --s0:        #6BA3D6;
+  --s1:        #4FBCA5;
+  --s2:        #C4A44A;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Source Serif 4", Georgia, "Songti SC", serif;
+  font-size: var(--step-0);
+  line-height: 1.68;
+  margin: 0;
+  padding: 0 20px 96px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 1000px; margin: 0 auto; }
+.col  { max-width: var(--measure); margin-inline: auto; }
+
+.masthead {
+  padding: 64px 0 40px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 48px;
+}
+.eyebrow {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: var(--step--1);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 18px;
+}
+h1 {
+  font-family: Archivo, "PingFang SC", system-ui, sans-serif;
+  font-weight: 700;
+  font-size: var(--step-4);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  margin: 0 0 20px;
+}
+.thesis {
+  font-size: var(--step-1);
+  line-height: 1.55;
+  color: var(--ink-soft);
+  max-width: 60ch;
+  margin: 0 0 32px;
+  text-wrap: pretty;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+}
+.fact { background: var(--surface); padding: 16px 18px; }
+.fact dt {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: var(--step--1);
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+.fact dd {
+  margin: 0;
+  font-family: Archivo, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: var(--step-1);
+  font-variant-numeric: tabular-nums;
+}
+
+section { margin-bottom: 68px; }
+
+h2 {
+  font-family: Archivo, "PingFang SC", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: var(--step-2);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  text-wrap: balance;
+  margin: 0 0 6px;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+h2 .num {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: var(--step--1);
+  font-weight: 500;
+  color: var(--signal);
+  letter-spacing: 0.08em;
+  flex: none;
+}
+h3.step {
+  font-family: Archivo, system-ui, sans-serif;
+  font-size: var(--step-1);
+  font-weight: 600;
+  margin: 34px 0 10px;
+  padding-left: 12px;
+  border-left: 3px solid var(--signal);
+}
+.lede { color: var(--muted); margin: 0 0 26px; }
+p { margin: 0 0 18px; text-wrap: pretty; }
+code, .mono {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.88em;
+}
+code { color: var(--ink-soft); }
+
+.formula {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--s0);
+  padding: 20px 22px;
+  margin: 0 0 24px;
+  overflow-x: auto;
+}
+.formula pre {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.86rem;
+  line-height: 1.85;
+  margin: 0;
+  white-space: pre;
+}
+.formula .w { color: var(--signal); font-weight: 600; }
+.formula .t { color: var(--s0); }
+.formula figcaption {
+  font-size: var(--step--1);
+  color: var(--muted);
+  margin-top: 14px;
+  line-height: 1.6;
+  white-space: normal;
+}
+
+figure.plate {
+  margin: 0 0 26px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  padding: 26px 26px 18px;
+  overflow-x: auto;
+}
+figure.plate svg { display: block; max-width: 100%; height: auto; margin-inline: auto; }
+figure.plate figcaption {
+  font-size: var(--step--1);
+  color: var(--muted);
+  line-height: 1.6;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule-soft);
+  text-wrap: pretty;
+}
+figure.plate figcaption .tag {
+  font-family: Archivo, system-ui, sans-serif;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+.panel-title {
+  font-family: Archivo, system-ui, sans-serif;
+  font-size: var(--step--1);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  margin: 0 0 10px;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.76rem;
+  color: var(--muted);
+  margin-top: 14px;
+}
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.swatch { width: 14px; height: 10px; flex: none; }
+
+.tablewrap { overflow-x: auto; border: 1px solid var(--rule); background: var(--surface); margin-bottom: 18px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
+th, td {
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--rule-soft);
+  white-space: nowrap;
+}
+thead th {
+  font-family: Archivo, system-ui, sans-serif;
+  font-size: var(--step--1);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--rule);
+}
+tbody tr:last-child td { border-bottom: 0; }
+td.k, th.k { font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; }
+td.n { font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; }
+tr.pick td { background: var(--signal-bg); }
+tr.pick td:last-child { font-weight: 600; color: var(--signal); }
+
+.verdict {
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--s0);
+  background: var(--surface);
+  padding: 28px 30px;
+}
+.verdict h3 {
+  font-family: Archivo, system-ui, sans-serif;
+  font-size: var(--step-1);
+  font-weight: 600;
+  margin: 0 0 14px;
+}
+.verdict p:last-child { margin-bottom: 0; }
+
+.repro {
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  padding: 18px 20px;
+  overflow-x: auto;
+  margin: 0 0 18px;
+}
+.repro pre {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  line-height: 1.75;
+  margin: 0;
+  white-space: pre;
+  color: var(--ink-soft);
+}
+.repro .c { color: var(--muted); }
+
+footer {
+  margin-top: 60px;
+  padding-top: 22px;
+  border-top: 1px solid var(--rule);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.76rem;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+@media (max-width: 640px) {
+  :root { --step-4: 2.15rem; --step-2: 1.35rem; }
+  .masthead { padding-top: 40px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">MiniDAG · 一个可以手算的例子</p>
+  <h1>从图到流</h1>
+  <p class="thesis">
+    十二个算子，三条分支，一个汇聚点。
+    跟着 MiniDAG 走完分层、成单元、挑流三步，
+    每个数字都能用纸笔验算，最后得到每个算子落在哪条流上。
+  </p>
+  <dl class="facts">
+    <div class="fact"><dt>算子</dt><dd>12 个</dd></div>
+    <div class="fact"><dt>单元</dt><dd>3 个</dd></div>
+    <div class="fact"><dt>决策</dt><dd>3 步</dd></div>
+    <div class="fact"><dt>流数上限</dt><dd>3 条</dd></div>
+  </dl>
+</header>
+
+<section class="col">
+  <h2><span class="num">01</span>这个网络</h2>
+  <p class="lede">三条分支各查一次表再过两层全连接，汇聚后接一层输出。</p>
+  <p>
+    这是推荐模型里最常见的形状。三条分支互不依赖，理论上可以同时算；
+    汇聚之后的 <code>concat</code>、<code>fc</code>、<code>out</code> 必须串行。
+    下面看 MiniDAG 怎么把这个直觉变成具体的流号。
+  </p>
+</section>
+
+<figure class="plate">
+  <svg viewBox="0 0 640 262" role="img" aria-label="三分支网络结构：三条分支各含查表和两次矩阵乘，汇聚到 concat，再经 fc 到 out">
+    <defs>
+      <marker id="e1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+      </marker>
+    </defs>
+    <g font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor" opacity="0.5" text-anchor="middle">
+      <text x="70" y="22">层 0</text><text x="170" y="22">层 1</text><text x="270" y="22">层 2</text>
+      <text x="380" y="22">层 3</text><text x="470" y="22">层 4</text><text x="560" y="22">层 5</text>
+    </g>
+    <line x1="20" y1="30" x2="620" y2="30" stroke="currentColor" stroke-width="1" opacity="0.14"/>
+
+    <g stroke="currentColor" stroke-width="1.2" fill="none" marker-end="url(#e1)" opacity="0.75">
+      <line x1="102" y1="60"  x2="134" y2="60"/>
+      <line x1="202" y1="60"  x2="234" y2="60"/>
+      <line x1="302" y1="63"  x2="344" y2="112"/>
+      <line x1="102" y1="130" x2="134" y2="130"/>
+      <line x1="202" y1="130" x2="234" y2="130"/>
+      <line x1="302" y1="130" x2="344" y2="130"/>
+      <line x1="102" y1="200" x2="134" y2="200"/>
+      <line x1="202" y1="200" x2="234" y2="200"/>
+      <line x1="302" y1="197" x2="344" y2="148"/>
+      <line x1="412" y1="130" x2="434" y2="130"/>
+      <line x1="502" y1="130" x2="524" y2="130"/>
+    </g>
+
+    <g font-family="IBM Plex Mono, monospace" font-size="11" text-anchor="middle">
+      <rect x="38"  y="45"  width="64" height="30" fill="none" stroke="currentColor" stroke-width="1.3"/><text x="70"  y="64" fill="currentColor">emb_a</text>
+      <rect x="138" y="45"  width="64" height="30" fill="none" stroke="currentColor" stroke-width="1.3"/><text x="170" y="64" fill="currentColor">mm_a1</text>
+      <rect x="238" y="45"  width="64" height="30" fill="none" stroke="currentColor" stroke-width="1.3"/><text x="270" y="64" fill="currentColor">mm_a2</text>
+      <rect x="38"  y="115" width="64" height="30" fill="none" stroke="currentColor" stroke-width="1.3"/><text x="70"  y="134" fill="currentColor">emb_b</text>
+      <rect x="138" y="115" width="64" height="30" fill="none" stroke="currentColor" stroke-width="1.3"/><text x="170" y="134" fill="currentColor">mm_b1</text>
+      <rect x="238" y="115" width="64" height="30" fill="none" stroke="currentColor" stroke-width="1.3"/><text x="270" y="134" fill="currentColor">mm_b2</text>
+      <rect x="38"  y="185" width="64" height="30" fill="none" stroke="currentColor" stroke-width="1.3"/><text x="70"  y="204" fill="currentColor">emb_c</text>
+      <rect x="138" y="185" width="64" height="30" fill="none" stroke="currentColor" stroke-width="1.3"/><text x="170" y="204" fill="currentColor">mm_c1</text>
+      <rect x="238" y="185" width="64" height="30" fill="none" stroke="currentColor" stroke-width="1.3"/><text x="270" y="204" fill="currentColor">mm_c2</text>
+      <rect x="348" y="115" width="64" height="30" fill="none" stroke="currentColor" stroke-width="1.3"/><text x="380" y="134" fill="currentColor">concat</text>
+      <rect x="438" y="115" width="64" height="30" fill="none" stroke="currentColor" stroke-width="1.3"/><text x="470" y="134" fill="currentColor">fc</text>
+      <rect x="528" y="115" width="64" height="30" fill="none" stroke="currentColor" stroke-width="1.3"/><text x="560" y="134" fill="currentColor">out</text>
+    </g>
+
+    <g font-family="IBM Plex Mono, monospace" font-size="9.5" fill="currentColor" opacity="0.55" text-anchor="middle">
+      <text x="70" y="90">GatherV2</text>
+      <text x="170" y="90">MatMul</text>
+      <text x="270" y="90">MatMul</text>
+      <text x="380" y="160">ConcatV2D</text>
+      <text x="470" y="160">MatMul</text>
+      <text x="560" y="160">NetOutput</text>
+    </g>
+    <text x="20" y="244" font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor" opacity="0.6">三条分支形状相同，层号由最长前驱路径决定</text>
+  </svg>
+  <figcaption>
+    <span class="tag">图 1</span>　12 个算子，11 条边。层号是分层的结果：
+    一个节点的层号等于所有前驱层号的最大值加一。
+    分支上的九个节点分布在层 0 到层 2，汇聚之后的三个节点占层 3 到层 5。
+  </figcaption>
+</figure>
+
+<section class="col">
+  <h2><span class="num">02</span>第一步：分层</h2>
+  <p class="lede">拓扑排序之后，按最长前驱路径给每个节点定层。</p>
+  <p>
+    三条分支形状相同，所以同名位置的节点落在同一层：三个 <code>emb</code> 都在层 0，
+    三个 <code>mm?1</code> 都在层 1，三个 <code>mm?2</code> 都在层 2。
+    <code>concat</code> 的前驱是三个层 2 的节点，所以它在层 3。
+  </p>
+  <p>
+    分层的结果给出每层的节点数，也就是 <code>global_level_loads</code>：
+  </p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th class="k">层</th><th class="k">0</th><th class="k">1</th><th class="k">2</th><th class="k">3</th><th class="k">4</th><th class="k">5</th></tr></thead>
+      <tbody><tr><td class="k">节点数</td><td class="n">3</td><td class="n">3</td><td class="n">3</td><td class="n">1</td><td class="n">1</td><td class="n">1</td></tr></tbody>
+    </table>
+  </div>
+  <p>
+    前三层各有 3 个节点，可以并行；后三层各只有 1 个节点，只能串行。
+    这个数组后面还要用到：MainStream 判断该不该强制回主流，看的就是它。
+  </p>
+</section>
+
+<section class="col">
+  <h2><span class="num">03</span>第二步：路径覆盖成单元</h2>
+  <p class="lede">用最少的链覆盖整张图，每条链成为一个单元。</p>
+  <p>
+    算法不给单个节点挑流，而是先把节点串成链。这里用的是 HopcroftKarp 二分匹配求最小路径覆盖，
+    12 个节点被三条链盖住，于是得到 3 个单元。同一个单元里的节点必定分到同一条流。
+  </p>
+</section>
+
+<figure class="plate">
+  <svg viewBox="0 0 640 262" role="img" aria-label="路径覆盖的结果：单元 0 覆盖分支 A 加上汇聚后的三个节点，单元 1 和单元 2 各覆盖一条分支">
+    <defs>
+      <marker id="e2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+      </marker>
+    </defs>
+    <g font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor" opacity="0.5" text-anchor="middle">
+      <text x="70" y="22">层 0</text><text x="170" y="22">层 1</text><text x="270" y="22">层 2</text>
+      <text x="380" y="22">层 3</text><text x="470" y="22">层 4</text><text x="560" y="22">层 5</text>
+    </g>
+    <line x1="20" y1="30" x2="620" y2="30" stroke="currentColor" stroke-width="1" opacity="0.14"/>
+
+    <path d="M 70 45 L 70 45 M 38 45 L 302 45 L 344 112 L 592 112 L 592 148 L 344 148 L 302 75 L 38 75 Z"
+          fill="none" stroke="#2A5C8A" stroke-width="1" stroke-dasharray="4 3" opacity="0.35"/>
+
+    <g stroke="currentColor" stroke-width="1.1" fill="none" marker-end="url(#e2)" opacity="0.4">
+      <line x1="302" y1="130" x2="344" y2="130"/>
+      <line x1="302" y1="197" x2="344" y2="148"/>
+    </g>
+    <g stroke="#2A5C8A" stroke-width="2" fill="none" marker-end="url(#e2)">
+      <line x1="102" y1="60"  x2="134" y2="60"/>
+      <line x1="202" y1="60"  x2="234" y2="60"/>
+      <line x1="302" y1="63"  x2="344" y2="112"/>
+      <line x1="412" y1="130" x2="434" y2="130"/>
+      <line x1="502" y1="130" x2="524" y2="130"/>
+    </g>
+    <g stroke="#1C7C6B" stroke-width="2" fill="none" marker-end="url(#e2)">
+      <line x1="102" y1="130" x2="134" y2="130"/>
+      <line x1="202" y1="130" x2="234" y2="130"/>
+    </g>
+    <g stroke="#7B6320" stroke-width="2" fill="none" marker-end="url(#e2)">
+      <line x1="102" y1="200" x2="134" y2="200"/>
+      <line x1="202" y1="200" x2="234" y2="200"/>
+    </g>
+
+    <g font-family="IBM Plex Mono, monospace" font-size="11" text-anchor="middle" fill="#FFFFFF">
+      <rect x="38"  y="45"  width="64" height="30" fill="#2A5C8A"/><text x="70"  y="64">emb_a</text>
+      <rect x="138" y="45"  width="64" height="30" fill="#2A5C8A"/><text x="170" y="64">mm_a1</text>
+      <rect x="238" y="45"  width="64" height="30" fill="#2A5C8A"/><text x="270" y="64">mm_a2</text>
+      <rect x="38"  y="115" width="64" height="30" fill="#1C7C6B"/><text x="70"  y="134">emb_b</text>
+      <rect x="138" y="115" width="64" height="30" fill="#1C7C6B"/><text x="170" y="134">mm_b1</text>
+      <rect x="238" y="115" width="64" height="30" fill="#1C7C6B"/><text x="270" y="134">mm_b2</text>
+      <rect x="38"  y="185" width="64" height="30" fill="#7B6320"/><text x="70"  y="204">emb_c</text>
+      <rect x="138" y="185" width="64" height="30" fill="#7B6320"/><text x="170" y="204">mm_c1</text>
+      <rect x="238" y="185" width="64" height="30" fill="#7B6320"/><text x="270" y="204">mm_c2</text>
+      <rect x="348" y="115" width="64" height="30" fill="#2A5C8A"/><text x="380" y="134">concat</text>
+      <rect x="438" y="115" width="64" height="30" fill="#2A5C8A"/><text x="470" y="134">fc</text>
+      <rect x="528" y="115" width="64" height="30" fill="#2A5C8A"/><text x="560" y="134">out</text>
+    </g>
+
+    <text x="20" y="244" font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor" opacity="0.6">粗线是链内的边，细线是跨单元的边</text>
+  </svg>
+  <div class="legend">
+    <span><i class="swatch" style="background:#2A5C8A"></i>单元 0：6 个节点，层 0–5</span>
+    <span><i class="swatch" style="background:#1C7C6B"></i>单元 1：3 个节点，层 0–2</span>
+    <span><i class="swatch" style="background:#7B6320"></i>单元 2：3 个节点，层 0–2</span>
+  </div>
+  <figcaption>
+    <span class="tag">图 2</span>　路径覆盖把分支 A 和汇聚后的三个节点串成了一条链，
+    另外两条分支各成一条。跨单元的边只有两条：单元 1 到单元 0，单元 2 到单元 0。
+    这两条边后面会以 <code>event_local</code> 的形式出现在打分里。
+  </figcaption>
+</figure>
+
+<section class="col">
+  <h2><span class="num">04</span>第三步：给每个单元挑流</h2>
+  <p class="lede">三个单元，三步决策，每步比较几个候选流。</p>
+  <p>打分公式如下，四项加权求和，取最小的那个候选。</p>
+</section>
+
+<figure class="formula col">
+  <pre><span class="t">total</span> = <span class="w">3.0</span> × event_local      <span style="opacity:.6">跨流边数</span>
+      + <span class="w">4.0</span> × window_balance   <span style="opacity:.6">窗口内负载的 峰值 + 方差</span>
+      + <span class="w">1.0</span> × total_load       <span style="opacity:.6">该流累计负载</span>
+      + <span class="w">2.0</span> × [新开一条流]     <span style="opacity:.6">固定罚分</span></pre>
+  <figcaption>
+    窗口宽度是 6 层，这个网络一共 6 层，所以窗口盖住整张图，
+    <code>window_balance</code> 的输入就是每条流的节点总数。这让下面的算式格外好验算。
+  </figcaption>
+</figure>
+
+<section class="col">
+  <h3 class="step">步 1　单元 0（6 个节点）</h3>
+  <p>
+    此时一条流都还没有，唯一的候选就是新开流 0。
+    新流上只有这个单元，<code>window_loads</code> 是 <code>[6]</code>，
+    只有一个元素，方差为零。
+  </p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>候选</th><th class="k">event</th><th class="k">window_balance</th><th class="k">load</th><th class="k">新流</th><th>total</th></tr></thead>
+      <tbody>
+        <tr class="pick"><td class="k">新开流 0</td><td class="n">0</td><td class="n">[6] → 6 + 0 = 6.00</td><td class="n">6</td><td class="n">1</td><td class="n">0 + 24 + 6 + 2 = 32</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="col">
+  <h3 class="step">步 2　单元 1（3 个节点）</h3>
+  <p>
+    候选有两个：单元 1 的后继单元 0 已经在流 0 上，所以流 0 进入候选；
+    再加上新开一条流。
+  </p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>候选</th><th class="k">event</th><th class="k">window_balance</th><th class="k">load</th><th class="k">新流</th><th>total</th></tr></thead>
+      <tbody>
+        <tr><td class="k">留在流 0</td><td class="n">0</td><td class="n">[9] → 9 + 0 = 9.00</td><td class="n">9</td><td class="n">0</td><td class="n">0 + 36 + 9 + 0 = 45</td></tr>
+        <tr class="pick"><td class="k">新开流 1</td><td class="n">1</td><td class="n">[6,3] → 6 + 2.25 = 8.25</td><td class="n">3</td><td class="n">1</td><td class="n">3 + 33 + 3 + 2 = 41</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    留在流 0 的话两个单元同在一条流上，负载 9，方差为零但峰值高。
+    新开一条流让负载变成 6 和 3，峰值降到 6，方差是
+    <code>((6−3)/2)² = 2.25</code>。付出的代价是 1 条跨流边（3 分）加固定罚分（2 分），
+    总账 41 比 45 更划算，于是分出第二条流。
+  </p>
+</section>
+
+<section class="col">
+  <h3 class="step">步 3　单元 2（3 个节点）</h3>
+  <p>
+    候选有三个：邻居所在的流 0、当前最轻的流 1、以及新开一条流。
+    上限是 3 条流，所以新流还开得出来。
+  </p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>候选</th><th class="k">event</th><th class="k">window_balance</th><th class="k">load</th><th class="k">新流</th><th>total</th></tr></thead>
+      <tbody>
+        <tr><td class="k">留在流 0</td><td class="n">0</td><td class="n">[9,3] → 9 + 9 = 18.00</td><td class="n">9</td><td class="n">0</td><td class="n">0 + 72 + 9 + 0 = 81</td></tr>
+        <tr class="pick"><td class="k">放到流 1</td><td class="n">1</td><td class="n">[6,6] → 6 + 0 = 6.00</td><td class="n">6</td><td class="n">0</td><td class="n">3 + 24 + 6 + 0 = 33</td></tr>
+        <tr><td class="k">新开流 2</td><td class="n">1</td><td class="n">[6,3,3] → 6 + 2 = 8.00</td><td class="n">3</td><td class="n">1</td><td class="n">3 + 32 + 3 + 2 = 40</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    这一步选中的是中间那个候选。放到流 1 之后两条流各 6 个节点，
+    方差正好为零，<code>window_balance</code> 降到 6，是三个候选里最低的。
+    新开第三条流虽然把单元 2 单独放着，但三条流变成 6、3、3，反而不如两条 6、6 均匀。
+  </p>
+</section>
+
+<section class="col">
+  <h2><span class="num">05</span>结果</h2>
+  <p class="lede">两条流，各六个算子。</p>
+</section>
+
+<figure class="plate">
+  <svg viewBox="0 0 640 262" role="img" aria-label="LoadBalance 的分流结果：分支 A 与汇聚后的节点在流 0，分支 B 和分支 C 在流 1">
+    <defs>
+      <marker id="e3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+      </marker>
+    </defs>
+    <g font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor" opacity="0.5" text-anchor="middle">
+      <text x="70" y="22">层 0</text><text x="170" y="22">层 1</text><text x="270" y="22">层 2</text>
+      <text x="380" y="22">层 3</text><text x="470" y="22">层 4</text><text x="560" y="22">层 5</text>
+    </g>
+    <line x1="20" y1="30" x2="620" y2="30" stroke="currentColor" stroke-width="1" opacity="0.14"/>
+
+    <g stroke="currentColor" stroke-width="1.2" fill="none" marker-end="url(#e3)" opacity="0.55">
+      <line x1="102" y1="60"  x2="134" y2="60"/>
+      <line x1="202" y1="60"  x2="234" y2="60"/>
+      <line x1="302" y1="63"  x2="344" y2="112"/>
+      <line x1="102" y1="130" x2="134" y2="130"/>
+      <line x1="202" y1="130" x2="234" y2="130"/>
+      <line x1="302" y1="130" x2="344" y2="130"/>
+      <line x1="102" y1="200" x2="134" y2="200"/>
+      <line x1="202" y1="200" x2="234" y2="200"/>
+      <line x1="302" y1="197" x2="344" y2="148"/>
+      <line x1="412" y1="130" x2="434" y2="130"/>
+      <line x1="502" y1="130" x2="524" y2="130"/>
+    </g>
+
+    <g font-family="IBM Plex Mono, monospace" font-size="11" text-anchor="middle" fill="#FFFFFF">
+      <rect x="38"  y="45"  width="64" height="30" fill="#2A5C8A"/><text x="70"  y="64">emb_a</text>
+      <rect x="138" y="45"  width="64" height="30" fill="#2A5C8A"/><text x="170" y="64">mm_a1</text>
+      <rect x="238" y="45"  width="64" height="30" fill="#2A5C8A"/><text x="270" y="64">mm_a2</text>
+      <rect x="38"  y="115" width="64" height="30" fill="#1C7C6B"/><text x="70"  y="134">emb_b</text>
+      <rect x="138" y="115" width="64" height="30" fill="#1C7C6B"/><text x="170" y="134">mm_b1</text>
+      <rect x="238" y="115" width="64" height="30" fill="#1C7C6B"/><text x="270" y="134">mm_b2</text>
+      <rect x="38"  y="185" width="64" height="30" fill="#1C7C6B"/><text x="70"  y="204">emb_c</text>
+      <rect x="138" y="185" width="64" height="30" fill="#1C7C6B"/><text x="170" y="204">mm_c1</text>
+      <rect x="238" y="185" width="64" height="30" fill="#1C7C6B"/><text x="270" y="204">mm_c2</text>
+      <rect x="348" y="115" width="64" height="30" fill="#2A5C8A"/><text x="380" y="134">concat</text>
+      <rect x="438" y="115" width="64" height="30" fill="#2A5C8A"/><text x="470" y="134">fc</text>
+      <rect x="528" y="115" width="64" height="30" fill="#2A5C8A"/><text x="560" y="134">out</text>
+    </g>
+    <text x="20" y="244" font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor" opacity="0.6">流 0 六个算子，流 1 六个算子，跨流边两条</text>
+  </svg>
+  <div class="legend">
+    <span><i class="swatch" style="background:#2A5C8A"></i>流 0</span>
+    <span><i class="swatch" style="background:#1C7C6B"></i>流 1</span>
+  </div>
+  <figcaption>
+    <span class="tag">图 3</span>　LoadBalance 的最终结果。
+    分支 B 和分支 C 合并在流 1 上依次执行，与流 0 上的分支 A 并行。
+    <code>concat</code> 需要等三条分支都算完，这个同步由两条跨流边表达。
+  </figcaption>
+</figure>
+
+<section class="col">
+  <h2><span class="num">06</span>换成 MainStream 会怎样</h2>
+  <p class="lede">同一个网络，三条流，每条分支各占一条。</p>
+  <p>
+    MainStream 的打分不含累计负载，改用同层冲突，并给主流一个奖励项。
+    在这个网络上它的三步是这样走的。
+  </p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>步</th><th>候选</th><th class="k">event</th><th class="k">同层冲突</th><th class="k">主流奖励</th><th>total</th></tr></thead>
+      <tbody>
+        <tr class="pick"><td class="n">1</td><td class="k">流 0（唯一候选）</td><td class="n">0</td><td class="n">0</td><td class="n">3</td><td class="n">0 + 0 + 2 − 12 = −10</td></tr>
+        <tr><td class="n">2</td><td class="k">留在流 0</td><td class="n">0</td><td class="n">3</td><td class="n">0</td><td class="n">0 + 12 + 0 = 12</td></tr>
+        <tr class="pick"><td class="n">2</td><td class="k">新开流 1</td><td class="n">1</td><td class="n">0</td><td class="n">0</td><td class="n">3 + 0 + 2 = 5</td></tr>
+        <tr><td class="n">3</td><td class="k">留在流 0</td><td class="n">0</td><td class="n">3</td><td class="n">0</td><td class="n">0 + 12 + 0 = 12</td></tr>
+        <tr><td class="n">3</td><td class="k">放到流 1</td><td class="n">1</td><td class="n">3</td><td class="n">0</td><td class="n">3 + 12 + 0 = 15</td></tr>
+        <tr class="pick"><td class="n">3</td><td class="k">新开流 2</td><td class="n">1</td><td class="n">0</td><td class="n">0</td><td class="n">3 + 0 + 2 = 5</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    步 1 单元 0 是唯一候选：它在层 3 到层 5 上独占，全图那三层各只有一个节点，
+    触发了强制回主流的规则。主流奖励是 3 个独占节点乘权重 4，总分成了负数。
+  </p>
+  <p>
+    步 3 是两种策略分道的地方。LoadBalance 把单元 2 放进流 1，因为那样两条流各 6 个节点最均匀；
+    MainStream 看到单元 2 与流 1 上的单元 1 完全同层，冲突是 3，
+    于是宁可再开一条流。最终结果是 6、3、3，每条分支独占一条流。
+  </p>
+  <div class="verdict">
+    <h3>同一个网络，两个答案都成立</h3>
+    <p>
+      LoadBalance 追求各流的量接近，得到 6 和 6；
+      MainStream 追求同层不争用，得到 6、3、3。
+      前者省一条流，后者让三条分支真正同时开跑。
+      哪个更快取决于分支本身的耗时，以及硬件上多流切换的开销。
+    </p>
+  </div>
+</section>
+
+<section class="col">
+  <h2><span class="num">07</span>自己跑一遍</h2>
+  <p class="lede">不需要 NPU，只要能导入 minidag。</p>
+  <p>把下面这段存成文件直接执行，就能得到本文所有数字。</p>
+  <div class="repro"><pre><span class="c"># source ~/AscendMsTest/cann-9.2.0/set_env.sh 之后执行</span>
+import minidag
+
+NODES = [("emb_a","GatherV2"), ("mm_a1","MatMul"), ("mm_a2","MatMul"),
+         ("emb_b","GatherV2"), ("mm_b1","MatMul"), ("mm_b2","MatMul"),
+         ("emb_c","GatherV2"), ("mm_c1","MatMul"), ("mm_c2","MatMul"),
+         ("concat","ConcatV2D"), ("fc","MatMul"), ("out","NetOutput")]
+EDGES = [("emb_a","mm_a1"), ("mm_a1","mm_a2"), ("mm_a2","concat"),
+         ("emb_b","mm_b1"), ("mm_b1","mm_b2"), ("mm_b2","concat"),
+         ("emb_c","mm_c1"), ("mm_c1","mm_c2"), ("mm_c2","concat"),
+         ("concat","fc"), ("fc","out")]
+
+g = minidag.DAGGraph("demo")
+node = {n: g.add_node(n, t) for n, t in NODES}
+for a, b in EDGES:
+    g.add_edge(node[a], 0, node[b], 0)
+
+plan = minidag.allocate(g, max_stream_num=3,
+                        merge_strategy=minidag.MergeStrategy.LOAD_BALANCE)
+for n, _ in NODES:
+    print(n, plan.get_stream_id(node[n]))</pre></div>
+  <p>
+    把 <code>LOAD_BALANCE</code> 换成 <code>MAIN_STREAM</code> 就能看到第 6 节的结果。
+    想看每一步的打分，用 <code>benchmarks/minidag_equiv/replay_minidag.py</code> 里的
+    <code>install_score_probe()</code>，它包住两个打分函数，把每次比较都记下来。
+  </p>
+</section>
+
+<footer>
+  本文所有数字由 minidag 实际执行产生，权重取自 _merger.py:83 的默认值。<br>
+  窗口宽度 6 层，流数上限 3 条，repair_moves 为 0。
+</footer>
+
+</div>
