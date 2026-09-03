@@ -1,0 +1,62 @@
+<!--astro
+title: 直接用 HTML 写的文章
+description: 演示第 2 层内容——把 .html 丢进 src/content/posts/，它会套上完整的站点外壳。
+pubDate: 2026-09-03
+tags: [写作, HTML]
+-->
+
+<p>
+  这篇文章的源文件是 <code>src/content/posts/html-post-demo.html</code>，一个字的 Markdown 都没有，
+  但它和普通文章享受完全相同的待遇：有页头页脚、有右侧目录、有评论区，也会出现在文章列表、标签页、
+  归档、RSS 和站内搜索里。
+</p>
+
+<h2>什么时候该用 HTML 写</h2>
+
+<p>Markdown 覆盖了绝大多数写作场景。选择直接写 HTML，通常是因为下面这些原因：</p>
+
+<ul>
+  <li>内容本身就是从别处导出的 HTML 片段，不想再转一道 Markdown；</li>
+  <li>需要精确控制结构，比如复杂表格、带 <code>colspan</code> 的表头、自定义的语义标签；</li>
+  <li>要嵌入一段只属于这篇文章的交互式内容。</li>
+</ul>
+
+<h2>frontmatter 写在注释里</h2>
+
+<p>
+  HTML 没有 Markdown 那样的 frontmatter 约定，所以这里约定：文件开头的
+  <code>&lt;!--astro ... --&gt;</code> 注释块就是 frontmatter，里面按 YAML 写。
+  字段和 Markdown 文章完全一致：<code>title</code>、<code>description</code>、
+  <code>pubDate</code>、<code>updatedDate</code>、<code>tags</code>、<code>draft</code>、<code>cover</code>。
+</p>
+
+<p>其中 <code>title</code> 和 <code>pubDate</code> 是必填的，缺了会在构建期直接报错，而不是悄悄生成一篇无标题文章。</p>
+
+<h2>目录锚点是自动补的</h2>
+
+<p>
+  你会注意到这篇文章右侧同样有目录。上面这些 <code>&lt;h2&gt;</code> 我并没有手写 <code>id</code>，
+  是构建时用 github-slugger 自动补上的——和 Markdown 文章用的是同一套算法，所以两类文章的锚点风格完全一致。
+  如果你自己写了 <code>id</code>，那就以你写的为准。
+</p>
+
+<h2>图表一样能用</h2>
+
+<p>Markdown 里的 <code>```mermaid</code> 代码块最终也是变成下面这个样子，所以在 HTML 文章里直接手写就行：</p>
+
+<div class="mermaid" data-mermaid-src="graph LR
+    A[.md 文章] --> C[统一的 Post 结构]
+    B[.html 文章] --> C
+    C --> D[列表 / 标签 / 归档]
+    C --> E[RSS]
+    C --> F[全文搜索]"></div>
+
+<h2>一条安全边界</h2>
+
+<blockquote>
+  <p>
+    这一层的内容是用 <code>set:html</code> 直出的，等于完全信任文件内容。
+    <strong>只放自己写的 HTML。</strong>第三方来源、用户提交的 HTML 请放到 <code>public/</code> 下，
+    浏览器会把它当成独立文档处理，不会和站点共享执行上下文。
+  </p>
+</blockquote>

@@ -1,0 +1,51 @@
+---
+// 只在文章页挂载。Mermaid 运行时体积不小，所以按需动态 import：
+// 页面上没有图表时，一个字节都不会下载。
+---
+
+<script>
+  const nodes = Array.from(document.querySelectorAll<HTMLElement>('.mermaid'))
+
+  if (nodes.length > 0) {
+    // 原始源码优先取 data-mermaid-src（remark 插件写入）；
+    // HTML 文章里作者也可能把源码直接写在标签内，这里兜底并回写，保证后续能重绘。
+    for (const node of nodes) {
+      if (!node.dataset.mermaidSrc) {
+        node.dataset.mermaidSrc = node.textContent?.trim() ?? ''
+      }
+    }
+
+    const { default: mermaid } = await import('mermaid')
+    let renderCount = 0
+
+    const renderAll = async () => {
+      const isDark = document.documentElement.dataset.theme === 'dark'
+
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: isDark ? 'dark' : 'default',
+        securityLevel: 'strict',
+        fontFamily: getComputedStyle(document.body).fontFamily,
+      })
+
+      for (const node of nodes) {
+        const source = node.dataset.mermaidSrc
+        if (!source) continue
+        try {
+          // id 必须每次唯一，否则切主题重绘时 Mermaid 会复用旧的定义
+          const { svg } = await mermaid.render(`mermaid-${renderCount++}`, source)
+          node.innerHTML = svg
+          node.dataset.rendered = 'true'
+        } catch (error) {
+          node.innerHTML = `<pre class="mermaid-error">图表渲染失败：${
+            error instanceof Error ? error.message : String(error)
+          }</pre>`
+          node.dataset.rendered = 'true'
+        }
+      }
+    }
+
+    await renderAll()
+    document.addEventListener('theme-change', () => void renderAll())
+  }
+</script>

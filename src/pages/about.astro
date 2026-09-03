@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import { SITE } from '../site.config.mjs'
+import { withBase, isExternal } from '../lib/url'
+---
+
+<BaseLayout title="关于" description={`关于 ${SITE.title} 和站点作者。`}>
+  <h1 class="page-title">关于</h1>
+
+  <div class="prose">
+    <p>这里是 {SITE.author} 的个人博客，用来记录技术实践与日常思考。</p>
+
+    <h2>这个站点怎么写</h2>
+
+    <p>内容分三层，往哪个目录丢文件决定了它怎么被呈现：</p>
+
+    <ul>
+      <li>
+        <code>src/content/posts/*.md</code> —— Markdown 文章，享受完整管线：代码高亮、数学公式、
+        图表、标题锚点、目录、评论。
+      </li>
+      <li>
+        <code>src/content/posts/*.html</code> —— 直接用 HTML 写的文章，套同一套站点外壳，
+        同样进列表、标签、归档、RSS 和搜索。
+      </li>
+      <li>
+        <code>public/**/*.html</code> —— 完全独立的 HTML 文档，原样输出、不套外壳，
+        适合放导出的报告或自带样式脚本的可视化页面。
+      </li>
+    </ul>
+
+    <h2>联系</h2>
+
+    <ul>
+      {
+        SITE.social.map((item) => (
+          <li>
+            <a
+              href={withBase(item.href)}
+              rel={isExternal(item.href) ? 'noopener noreferrer' : undefined}
+              target={isExternal(item.href) ? '_blank' : undefined}
+            >
+              {item.text}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</BaseLayout>

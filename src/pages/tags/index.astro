@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { getAllPosts, getAllTags } from '../../lib/posts'
+import { tagUrl } from '../../lib/url'
+
+const posts = await getAllPosts()
+const tags = getAllTags(posts)
+---
+
+<BaseLayout title="标签" description={`按标签浏览全部文章，共 ${tags.length} 个标签。`}>
+  <h1 class="page-title">标签</h1>
+  <p class="page-lead">共 {tags.length} 个标签</p>
+
+  <ul class="tag-cloud">
+    {
+      tags.map(({ tag, count }) => (
+        <li>
+          <a href={tagUrl(tag)}>
+            {tag}
+            <span class="count">{count}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</BaseLayout>

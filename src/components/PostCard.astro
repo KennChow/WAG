@@ -1,0 +1,24 @@
+---
+import type { Post } from '../lib/posts'
+import { formatDate } from '../lib/posts'
+import { postUrl, tagUrl } from '../lib/url'
+
+interface Props {
+  post: Post
+}
+
+const { post } = Astro.props
+---
+
+<li class="post-card">
+  <h3 class="post-card__title">
+    <a href={postUrl(post.slug)}>{post.title}</a>
+  </h3>
+  {post.description && <p class="post-card__desc">{post.description}</p>}
+  <div class="post-meta">
+    <time datetime={post.pubDate.toISOString()}>{formatDate(post.pubDate)}</time>
+    <span>{post.minutes} 分钟</span>
+    {post.format === 'html' && <span class="format-badge" title="这篇文章直接以 HTML 写成">html</span>}
+    {post.tags.map((tag) => <a class="tag-link" href={tagUrl(tag)}>{tag}</a>)}
+  </div>
+</li>

@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+// PagefindConfig 负责加载运行时、注入 CSS，并把 bundle-path 设成 BASE_URL + 'pagefind/'，
+// 子路径部署下的索引地址由它自动处理。
+import PagefindConfig from 'astro-pagefind/components/PagefindConfig.astro'
+---
+
+<BaseLayout title="搜索" description="站内全文搜索，Markdown 与 HTML 两类文章都可检索。">
+  <h1 class="page-title">搜索</h1>
+  <p class="page-lead">索引在构建时生成，检索完全在浏览器本地完成，不经过任何服务器。</p>
+
+  <div class="search-wrap">
+    {/* lang 显式写成 zh-cn，直接命中组件内置的简体中文文案 */}
+    <PagefindConfig lang="zh-cn" excerpt-length="30" />
+    <pagefind-input placeholder="搜索文章标题与正文" autofocus></pagefind-input>
+    <pagefind-summary></pagefind-summary>
+    <pagefind-results show-images="false"></pagefind-results>
+  </div>
+
+  <p class="search-hint">
+    开发模式下没有索引，搜索只在 <code>npm run build</code> 之后的 <code>npm run preview</code> 里生效。
+  </p>
+</BaseLayout>

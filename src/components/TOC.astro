@@ -1,0 +1,64 @@
+---
+import type { Heading } from '../lib/htmlPost'
+
+interface Props {
+  headings: Heading[]
+}
+
+// 只取 h2~h4：h1 是文章标题，更深的层级在窄侧栏里会挤成一团
+const headings = Astro.props.headings.filter((h) => h.depth >= 2 && h.depth <= 4)
+---
+
+{
+  headings.length > 1 && (
+    <nav class="toc" aria-label="目录">
+      <p class="toc__title">目录</p>
+      <ul>
+        {headings.map((heading) => (
+          <li class={`depth-${heading.depth}`}>
+            <a href={`#${heading.slug}`}>{heading.text}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+<script>
+  // 滚动时高亮当前所在小节
+  const links = document.querySelectorAll<HTMLAnchorElement>('.toc a')
+  if (links.length) {
+    const byId = new Map<string, HTMLAnchorElement>()
+    for (const link of links) {
+      const id = decodeURIComponent(link.hash.slice(1))
+      if (id) byId.set(id, link)
+    }
+
+    const targets = [...byId.keys()]
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null)
+
+    let active: HTMLAnchorElement | null = null
+    const setActive = (link: HTMLAnchorElement | null) => {
+      if (link === active) return
+      active?.removeAttribute('data-active')
+      link?.setAttribute('data-active', 'true')
+      active = link
+    }
+
+    const observer = new IntersectionObserver(
+      () => {
+        // 取当前视口上沿之上、最靠近的那个标题
+        let current: HTMLElement | null = null
+        for (const target of targets) {
+          if (target.getBoundingClientRect().top <= 100) current = target
+          else break
+        }
+        setActive(current ? (byId.get(current.id) ?? null) : null)
+      },
+      { rootMargin: '-90px 0px -70% 0px', threshold: 0 },
+    )
+
+    for (const target of targets) observer.observe(target)
+  }
+</script>

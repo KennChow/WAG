@@ -1,0 +1,62 @@
+---
+import { SITE } from '../site.config.mjs'
+import { withBase } from '../lib/url'
+import '../styles/global.css'
+
+interface Props {
+  title: string
+  description?: string
+  /** 文章页传 'article'，其余用 'website' */
+  type?: 'website' | 'article'
+  publishedTime?: Date
+  modifiedTime?: Date
+}
+
+const { title, description = SITE.description, type = 'website', publishedTime, modifiedTime } = Astro.props
+
+// 首页只显示站名，其余页面拼上站名后缀
+const fullTitle = title === SITE.title ? SITE.title : `${title} · ${SITE.title}`
+const canonical = new URL(Astro.url.pathname, Astro.site ?? SITE.origin).href
+const rssHref = withBase('/rss.xml')
+const faviconHref = withBase('/favicon.svg')
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<meta name="author" content={SITE.author} />
+<link rel="canonical" href={canonical} />
+<link rel="icon" href={faviconHref} type="image/svg+xml" />
+<link rel="alternate" type="application/rss+xml" title={SITE.title} href={rssHref} />
+<link rel="sitemap" href={withBase('/sitemap-index.xml')} />
+
+<meta property="og:type" content={type} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:site_name" content={SITE.title} />
+<meta property="og:locale" content="zh_CN" />
+{publishedTime && <meta property="article:published_time" content={publishedTime.toISOString()} />}
+{modifiedTime && <meta property="article:modified_time" content={modifiedTime.toISOString()} />}
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+
+<meta name="generator" content={Astro.generator} />
+
+{/*
+  主题必须在首屏绘制前定下来，否则深色用户会看到一帧白闪。
+  is:inline 保证这段脚本原样内联、不被打包成异步模块。
+*/}
+<script is:inline>
+  ;(function () {
+    try {
+      var stored = localStorage.getItem('theme')
+      var theme = stored || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      document.documentElement.dataset.theme = theme
+    } catch (e) {
+      document.documentElement.dataset.theme = 'light'
+    }
+  })()
+</script>

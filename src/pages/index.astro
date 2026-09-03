@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import PostCard from '../components/PostCard.astro'
+import { getAllPosts } from '../lib/posts'
+import { SITE } from '../site.config.mjs'
+import { withBase } from '../lib/url'
+
+const posts = await getAllPosts()
+const recent = posts.slice(0, SITE.homeRecentCount)
+---
+
+<BaseLayout title={SITE.title} description={SITE.description}>
+  <section class="hero">
+    <h1>{SITE.subtitle}</h1>
+    <p>{SITE.description}</p>
+  </section>
+
+  <div class="section-head">
+    <h2>最近更新</h2>
+    <a href={withBase('/posts/')}>全部 {posts.length} 篇 →</a>
+  </div>
+
+  <ul class="post-list">
+    {recent.map((post) => <PostCard post={post} />)}
+  </ul>
+</BaseLayout>

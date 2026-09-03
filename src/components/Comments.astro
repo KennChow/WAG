@@ -1,0 +1,59 @@
+---
+import { SITE } from '../site.config.mjs'
+
+const g = SITE.giscus
+// repoId / categoryId 需要去 giscus.app 生成，没填就整块不渲染，避免线上出现一个空白报错框
+const enabled = Boolean(g.repo && g.repoId && g.categoryId)
+---
+
+{
+  enabled ? (
+    <section class="comments" aria-label="评论" data-pagefind-ignore>
+      <script
+        is:inline
+        src="https://giscus.app/client.js"
+        data-repo={g.repo}
+        data-repo-id={g.repoId}
+        data-category={g.category}
+        data-category-id={g.categoryId}
+        data-mapping={g.mapping}
+        data-strict="1"
+        data-reactions-enabled={g.reactionsEnabled}
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang={g.lang}
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async
+      />
+    </section>
+  ) : null
+}
+
+{
+  enabled && (
+    <script>
+      // giscus 在 iframe 里，只能通过 postMessage 换肤，跟随站点主题切换
+      const sync = (theme: string) => {
+        const frame = document.querySelector<HTMLIFrameElement>('iframe.giscus-frame')
+        frame?.contentWindow?.postMessage(
+          { giscus: { setConfig: { theme: theme === 'dark' ? 'dark' : 'light' } } },
+          'https://giscus.app',
+        )
+      }
+
+      document.addEventListener('theme-change', (event) => {
+        sync((event as CustomEvent<{ theme: string }>).detail.theme)
+      })
+
+      // iframe 加载完成前的切换会丢失，等 giscus 就绪后补一次
+      window.addEventListener('message', (event) => {
+        if (event.origin !== 'https://giscus.app') return
+        if (typeof event.data === 'object' && event.data?.giscus?.discussion) {
+          sync(document.documentElement.dataset.theme ?? 'light')
+        }
+      })
+    </script>
+  )
+}

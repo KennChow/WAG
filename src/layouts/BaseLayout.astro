@@ -1,0 +1,43 @@
+---
+import { SITE } from '../site.config.mjs'
+import BaseHead from '../components/BaseHead.astro'
+import Header from '../components/Header.astro'
+import Footer from '../components/Footer.astro'
+
+interface Props {
+  title: string
+  description?: string
+  type?: 'website' | 'article'
+  publishedTime?: Date
+  modifiedTime?: Date
+  /** 文章页用窄容器，列表页用默认宽度 */
+  narrow?: boolean
+}
+
+const { title, description, type, publishedTime, modifiedTime, narrow = true } = Astro.props
+---
+
+<!doctype html>
+<html lang={SITE.lang}>
+  <head>
+    <BaseHead
+      title={title}
+      description={description}
+      type={type}
+      publishedTime={publishedTime}
+      modifiedTime={modifiedTime}
+    />
+  </head>
+  <body>
+    <div class="page">
+      <a class="skip-link" href="#main">跳到正文</a>
+      <Header />
+      <main id="main">
+        <div class:list={['container', { 'container--narrow': narrow }]}>
+          <slot />
+        </div>
+      </main>
+      <Footer />
+    </div>
+  </body>
+</html>

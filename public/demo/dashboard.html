@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>独立 HTML 文档示例</title>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    margin: 0; padding: 2.5rem 1.5rem;
+    font: 16px/1.7 -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+          'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+    background: #0f1115; color: #e6e4e1;
+  }
+  .wrap { max-width: 52rem; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin: 0 0 .4rem; }
+  .sub { color: #8c8880; margin: 0 0 2.5rem; font-size: .95rem; }
+  .grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); margin-bottom: 2.5rem; }
+  .card { background: #171a20; border: 1px solid #262a32; border-radius: 8px; padding: 1.1rem 1.2rem; }
+  .card .label { color: #8c8880; font-size: .78rem; letter-spacing: .05em; }
+  .card .value { font-size: 1.8rem; font-weight: 600; margin-top: .3rem; font-variant-numeric: tabular-nums; }
+  .chart { background: #171a20; border: 1px solid #262a32; border-radius: 8px; padding: 1.5rem; overflow-x: auto; }
+  .bars { display: flex; align-items: flex-end; gap: .7rem; height: 11rem; min-width: 24rem; }
+  .bar { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: .5rem; }
+  .bar i { display: block; width: 100%; background: linear-gradient(180deg, #e8836f, #a83b2a); border-radius: 3px 3px 0 0; transition: height .6s cubic-bezier(.2,.8,.3,1); }
+  .bar span { font-size: .75rem; color: #8c8880; }
+  .note { margin-top: 2.5rem; padding: 1rem 1.2rem; border-left: 3px solid #a83b2a; background: #171a20; font-size: .9rem; color: #b8b4ae; }
+  a { color: #e8836f; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>独立 HTML 文档示例</h1>
+  <p class="sub">这个文件放在 <code>public/demo/dashboard.html</code>，构建时原样拷贝，不套任何站点外壳。</p>
+
+  <div class="grid">
+    <div class="card"><div class="label">构建耗时</div><div class="value" data-count="1.2">0</div></div>
+    <div class="card"><div class="label">页面数</div><div class="value" data-count="14">0</div></div>
+    <div class="card"><div class="label">索引词条</div><div class="value" data-count="836">0</div></div>
+    <div class="card"><div class="label">外部依赖</div><div class="value">0</div></div>
+  </div>
+
+  <div class="chart">
+    <div class="bars" id="bars"></div>
+  </div>
+
+  <p class="note">
+    这一层适合放导出的报告、自带样式和脚本的可视化页面，或者需要完全掌控 <code>&lt;head&gt;</code> 的旧页面。
+    它有自己独立的执行上下文，不会和站点其他部分互相影响。想让 HTML 文章融入博客体系（进列表、标签、RSS、搜索），
+    请改放到 <code>src/content/posts/</code> 下。
+  </p>
+</div>
+
+<script>
+  // 全部逻辑内联，不依赖任何外部资源
+  const data = [42, 68, 35, 90, 57, 74, 61];
+  const labels = ['一', '二', '三', '四', '五', '六', '日'];
+  const max = Math.max(...data);
+  const bars = document.getElementById('bars');
+
+  bars.innerHTML = data.map((v, i) =>
+    `<div class="bar"><i style="height:0" data-h="${(v / max * 100).toFixed(1)}%"></i><span>${labels[i]}</span></div>`
+  ).join('');
+
+  requestAnimationFrame(() => {
+    for (const el of bars.querySelectorAll('i')) el.style.height = el.dataset.h;
+  });
+
+  for (const el of document.querySelectorAll('[data-count]')) {
+    const target = parseFloat(el.dataset.count);
+    const decimals = String(target).includes('.') ? 1 : 0;
+    let start = null;
+    const step = (t) => {
+      if (start === null) start = t;
+      const p = Math.min((t - start) / 900, 1);
+      el.textContent = (target * (1 - Math.pow(1 - p, 3))).toFixed(decimals);
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+</script>
+</body>
+</html>

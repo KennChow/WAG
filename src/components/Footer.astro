@@ -1,0 +1,25 @@
+---
+import { SITE } from '../site.config.mjs'
+import { withBase, isExternal } from '../lib/url'
+
+const year = new Date().getFullYear()
+---
+
+<footer class="site-footer">
+  <div class="container site-footer__inner">
+    <span>© {year} {SITE.author}</span>
+    <div class="site-footer__links">
+      {
+        SITE.social.map((item) => (
+          <a
+            href={withBase(item.href)}
+            rel={isExternal(item.href) ? 'noopener noreferrer' : undefined}
+            target={isExternal(item.href) ? '_blank' : undefined}
+          >
+            {item.text}
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</footer>

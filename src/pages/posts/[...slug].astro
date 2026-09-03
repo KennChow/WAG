@@ -1,0 +1,31 @@
+---
+import { render } from 'astro:content'
+import PostLayout from '../../layouts/PostLayout.astro'
+import { getAllPosts } from '../../lib/posts'
+import type { Heading } from '../../lib/htmlPost'
+
+export async function getStaticPaths() {
+  const posts = await getAllPosts()
+
+  return posts.map((post, index) => ({
+    params: { slug: post.slug },
+    props: {
+      post,
+      // 列表是时间倒序：更早发布的排在后面，所以「上一篇」取 index + 1
+      prev: posts[index + 1],
+      next: posts[index - 1],
+    },
+  }))
+}
+
+const { post, prev, next } = Astro.props
+
+// md 走内容集合的 render()，html 用已经补好锚点的正文，两条路汇到同一个 PostLayout
+const rendered = post.format === 'md' && post.entry ? await render(post.entry) : null
+const Content = rendered?.Content
+const headings: Heading[] = rendered ? rendered.headings : (post.headings ?? [])
+---
+
+<PostLayout post={post} headings={headings} prev={prev} next={next}>
+  {Content ? <Content /> : <Fragment set:html={post.html} />}
+</PostLayout>
