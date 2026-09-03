@@ -28,8 +28,9 @@ const { post, headings, prev, next } = Astro.props
   publishedTime={post.pubDate}
   modifiedTime={post.updatedDate}
   narrow={false}
+  wide={post.scoped}
 >
-  <div class="post-layout">
+  <div class:list={['post-layout', { 'post-layout--wide': post.scoped }]}>
     {/* 有了 data-pagefind-body，Pagefind 只索引文章页，列表页不再污染搜索结果 */}
     <article data-pagefind-body>
       <header class="post-header">

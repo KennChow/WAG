@@ -7,6 +7,7 @@
 import yaml from 'js-yaml'
 import GithubSlugger from 'github-slugger'
 import { withBase } from './url'
+import { scopeCss } from './scopeCss'
 
 /** 文件开头的 <!--astro ... --> 注释即 frontmatter */
 const FRONTMATTER = /^\s*<!--\s*astro\s*\n([\s\S]*?)\n\s*-->/
@@ -92,4 +93,30 @@ export function rewriteBaseUrls(html: string): string {
   return html.replace(ROOT_URL_ATTR, (_whole, prefix: string, quote: string, path: string) => {
     return `${prefix}${quote}${withBase(path)}${quote}`
   })
+}
+
+/** 第 2 层文章里自带的 <style> 会被收窄到这个容器内 */
+export const SCOPE_CLASS = 'scoped-doc'
+
+const STYLE_BLOCK = /<style([^>]*)>([\s\S]*?)<\/style>/gi
+
+/**
+ * 作者常把一份完整的独立 HTML 文档直接丢进 src/content/posts/，
+ * 里面的 `body {}`、`h1 {}` 会污染整个页面（页头页脚一起被重新上色）。
+ *
+ * 这里把每个 <style> 的选择器收窄到 .scoped-doc，再把正文整体包进该容器。
+ * 没有 <style> 的文章保持原样，不做多余嵌套。
+ */
+export function scopeInlineStyles(html: string): { html: string; scoped: boolean } {
+  if (!STYLE_BLOCK.test(html)) {
+    STYLE_BLOCK.lastIndex = 0
+    return { html, scoped: false }
+  }
+  STYLE_BLOCK.lastIndex = 0
+
+  const scopedHtml = html.replace(STYLE_BLOCK, (_whole, attrs: string, css: string) => {
+    return `<style${attrs}>${scopeCss(css, `.${SCOPE_CLASS}`)}</style>`
+  })
+
+  return { html: `<div class="${SCOPE_CLASS}">${scopedHtml}</div>`, scoped: true }
 }

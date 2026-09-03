@@ -821,6 +821,31 @@ main {
   padding-left: 1.7rem;
 }
 
+/*
+ * 自带完整样式的 HTML 文章（.scoped-doc）通常按更宽的画布设计，
+ * 塞进 42rem 的正文列会让多列网格挤成两行。这类文章放宽版心，
+ * 具体宽度仍由文章自己的 .wrap 决定。
+ */
+.container--wide {
+  max-width: 80rem;
+}
+
+/* max-width 要留给两列之和：正文 62rem + 间距 3rem + 目录 15rem = 80rem */
+.post-layout--wide {
+  max-width: none;
+}
+
+@media (min-width: 1180px) {
+  .post-layout--wide {
+    grid-template-columns: minmax(0, 62rem) 15rem;
+  }
+}
+
+/* 自带样式的文章不需要站点 prose 的间距介入 */
+.prose .scoped-doc > * + * {
+  margin-top: 0;
+}
+
 /* ---------- 上一篇 / 下一篇 ---------- */
 
 .post-nav {

@@ -66,6 +66,15 @@ tags: [标签]
 
 `<h2>`~`<h4>` 如果没写 `id`，构建时会自动补上锚点（和 Markdown 用同一套 slug 算法）。
 
+**自带 `<style>` 的文章会被自动作用域化。** 很多人是把一份完整独立的 HTML 文档直接丢进来，
+里面带着 `body {}`、`h1 {}` 这类宽泛选择器，原样注入会把站点页头页脚一起重新上色。
+构建时用 postcss 解析这些 `<style>`，把选择器收窄到 `.scoped-doc` 容器内，正文整体包进该容器，
+并自动切换到更宽的版心（正文列 62rem，因为这类文档通常按 1000px 左右的画布设计）。
+
+`:root[data-theme="dark"]` 这类写法会被改写成 `:root[data-theme="dark"] .scoped-doc`，
+限定部分保留在祖先位置——所以文章自带的暗色配色能跟着站点的主题切换一起生效。
+`@keyframes` 和 `@font-face` 不受影响。
+
 > **安全边界**：这一层是用 `set:html` 直出的，等于完全信任文件内容。
 > **只放自己写的 HTML。** 第三方来源或用户提交的 HTML 请放到第 3 层。
 
@@ -155,6 +164,7 @@ src/
 │   ├── posts.ts           # 归一 md + html → Post[]，标签、归档、分页
 │   ├── htmlPost.ts        # HTML 文章的 frontmatter 解析与锚点补全
 │   ├── readingTime.ts     # 中文感知的字数与阅读时长
+│   ├── scopeCss.ts        # 把文章自带 <style> 收窄到容器内
 │   ├── standalonePages.ts # 扫描 public/ 生成独立页面清单
 │   └── url.ts             # withBase()：base 前缀唯一出口
 ├── plugins/               # remark-mermaid / rehype-base-url

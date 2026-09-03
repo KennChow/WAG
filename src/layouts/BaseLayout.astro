@@ -12,9 +12,11 @@ interface Props {
   modifiedTime?: Date
   /** 文章页用窄容器，列表页用默认宽度 */
   narrow?: boolean
+  /** 自带完整样式的 HTML 文章需要更宽的容器来放下目录和宽版正文 */
+  wide?: boolean
 }
 
-const { title, description, type, publishedTime, modifiedTime, narrow = true } = Astro.props
+const { title, description, type, publishedTime, modifiedTime, narrow = true, wide = false } = Astro.props
 ---
 
 <!doctype html>
@@ -33,7 +35,7 @@ const { title, description, type, publishedTime, modifiedTime, narrow = true } =
       <a class="skip-link" href="#main">跳到正文</a>
       <Header />
       <main id="main">
-        <div class:list={['container', { 'container--narrow': narrow }]}>
+        <div class:list={['container', { 'container--narrow': narrow, 'container--wide': wide }]}>
           <slot />
         </div>
       </main>

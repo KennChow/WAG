@@ -5,7 +5,13 @@
  * 列表页、标签页、归档、RSS、搜索都只面向 Post，不关心它原本是什么格式。
  */
 import { getCollection, type CollectionEntry } from 'astro:content'
-import { parseHtmlPost, extractHeadings, rewriteBaseUrls, type Heading } from './htmlPost'
+import {
+  parseHtmlPost,
+  extractHeadings,
+  rewriteBaseUrls,
+  scopeInlineStyles,
+  type Heading,
+} from './htmlPost'
 import { readingStats } from './readingTime'
 
 export type PostFormat = 'md' | 'html'
@@ -28,6 +34,8 @@ export interface Post {
   html?: string
   /** 仅 html 有；md 的目录来自 render() 返回的 headings */
   headings?: Heading[]
+  /** 仅 html：文章自带 <style>，正文已包进 .scoped-doc，需要更宽的版心 */
+  scoped?: boolean
 }
 
 const HTML_DIR = '/src/content/posts/'
@@ -53,7 +61,9 @@ function loadHtmlPosts(): Post[] {
     if (!data.title) throw new Error(`[posts] ${filePath} 缺少 title，请在开头的 <!--astro --> 注释里补上`)
     if (!data.pubDate) throw new Error(`[posts] ${filePath} 缺少 pubDate`)
 
-    const { html, headings } = extractHeadings(rewriteBaseUrls(body))
+    // 先补 base 前缀，再把自带样式收窄进容器，最后抽目录
+    const scoped = scopeInlineStyles(rewriteBaseUrls(body))
+    const { html, headings } = extractHeadings(scoped.html)
     const { words, minutes } = readingStats(body)
 
     return {
@@ -70,6 +80,7 @@ function loadHtmlPosts(): Post[] {
       minutes,
       html,
       headings,
+      scoped: scoped.scoped,
     }
   })
 }
