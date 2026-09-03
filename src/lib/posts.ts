@@ -111,9 +111,49 @@ export async function getAllPosts(): Promise<Post[]> {
     seen.set(post.slug, post.format)
   }
 
+  validateTags(all)
+
   return all
     .filter((post) => (import.meta.env.PROD ? !post.draft : true))
     .sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime())
+}
+
+/**
+ * 标签是直接拿来当 URL 路径段的（/tags/<标签>/），有两类问题必须在构建期拦下来：
+ *   1. 含 '/' 或 '\\' 会把单段路由撑成多段，Astro 只会抛一句
+ *      「Missing parameter: tag」，完全看不出是哪个标签的问题；
+ *   2. 只有大小写不同的标签会静默生成两个独立标签页，几乎总是笔误。
+ */
+function validateTags(posts: Post[]): void {
+  const byLowercase = new Map<string, Set<string>>()
+
+  for (const post of posts) {
+    for (const tag of post.tags) {
+      if (!tag.trim()) {
+        throw new Error(`[posts] 「${post.slug}」有一个空标签，请删掉它`)
+      }
+      if (/[/\\]/.test(tag)) {
+        throw new Error(
+          `[posts] 「${post.slug}」的标签「${tag}」含有斜杠。` +
+            `标签会直接作为 URL 路径段，不能包含 / 或 \\，请改成「${tag.replace(/[/\\]/g, '-')}」这类写法`,
+        )
+      }
+
+      const key = tag.toLowerCase()
+      if (!byLowercase.has(key)) byLowercase.set(key, new Set())
+      byLowercase.get(key)!.add(tag)
+    }
+  }
+
+  // 大小写撞车不阻断构建，但要吵出来，否则一个标签会被拆成两页
+  for (const variants of byLowercase.values()) {
+    if (variants.size > 1) {
+      console.warn(
+        `[posts] 标签大小写不一致：${[...variants].map((v) => `「${v}」`).join(' 和 ')}` +
+          ` 会各自生成独立的标签页，确认是否想统一成同一个`,
+      )
+    }
+  }
 }
 
 export async function getPostBySlug(slug: string): Promise<Post | undefined> {
