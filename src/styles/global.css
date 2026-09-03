@@ -398,6 +398,38 @@ main {
   font-variant-numeric: tabular-nums;
 }
 
+/* ---------- 独立页面清单 ---------- */
+
+.standalone-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.standalone-list > li > a {
+  font-size: 1.15rem;
+  color: var(--text);
+}
+
+.standalone-list > li > a:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.standalone-desc {
+  margin: 0.35rem 0 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.standalone-list .post-meta code {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
 /* ---------- 归档 ---------- */
 
 .archive-year {

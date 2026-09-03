@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import { getStandalonePages, formatBytes } from '../lib/standalonePages'
+
+const pages = getStandalonePages()
+---
+
+<BaseLayout title="独立页面" description="站内的独立 HTML 文档，不套站点外壳、自成一页。">
+  <h1 class="page-title">独立页面</h1>
+  <p class="page-lead">
+    这些是 <code>public/</code> 下的独立 HTML 文档，构建时原样输出、不套站点外壳，
+    各自有独立的执行上下文。适合放导出的报告、自带样式与脚本的可视化页面。
+  </p>
+
+  {
+    pages.length > 0 ? (
+      <ul class="standalone-list">
+        {pages.map((page) => (
+          <li>
+            <a href={page.url}>{page.title}</a>
+            {page.description && <p class="standalone-desc">{page.description}</p>}
+            <div class="post-meta">
+              <code>/{page.file}</code>
+              <span>{formatBytes(page.bytes)}</span>
+            </div>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p>还没有独立页面。往 <code>public/</code> 下放任意 <code>.html</code>，这里会自动出现。</p>
+    )
+  }
+</BaseLayout>

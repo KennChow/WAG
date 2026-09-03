@@ -27,6 +27,7 @@ export const SITE = {
     { text: '标签', href: '/tags/' },
     { text: '归档', href: '/archive/' },
     { text: '搜索', href: '/search/' },
+    { text: '独立页面', href: '/pages/' },
     { text: '关于', href: '/about/' },
   ],
 

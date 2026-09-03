@@ -77,13 +77,17 @@ tags: [标签]
 适合导出的报告、自带样式与脚本的可视化页面、需要完全掌控 `<head>` 的旧页面。
 它有独立的执行上下文，不会和站点其他部分互相影响。
 
+这类文件不进文章列表，但会自动汇总到 **`/WAG/pages/`**（导航里的「独立页面」）——
+构建时扫描 `public/`，读每个文件的 `<title>` 和 `<meta name="description">` 生成清单，
+新增文件自动出现，不用手工登记。文件名或目录名以 `_` 或 `.` 开头的会被跳过。
+
 ### 三层对比
 
 | | 位置 | URL | 站点外壳 | 进列表/RSS/搜索 |
 | --- | --- | --- | --- | --- |
 | Markdown 文章 | `src/content/posts/*.md` | `/WAG/posts/<slug>/` | ✅ | ✅ |
 | HTML 文章 | `src/content/posts/*.html` | `/WAG/posts/<slug>/` | ✅ | ✅ |
-| 独立 HTML | `public/**/*.html` | `/WAG/<路径>.html` | ❌ | ❌ |
+| 独立 HTML | `public/**/*.html` | `/WAG/<路径>.html` | ❌ | ❌，但自动列在 `/WAG/pages/` |
 
 两类文章共用 `/posts/` 命名空间，**文件名重复会在构建期直接报错**，不会静默覆盖。
 
@@ -151,6 +155,7 @@ src/
 │   ├── posts.ts           # 归一 md + html → Post[]，标签、归档、分页
 │   ├── htmlPost.ts        # HTML 文章的 frontmatter 解析与锚点补全
 │   ├── readingTime.ts     # 中文感知的字数与阅读时长
+│   ├── standalonePages.ts # 扫描 public/ 生成独立页面清单
 │   └── url.ts             # withBase()：base 前缀唯一出口
 ├── plugins/               # remark-mermaid / rehype-base-url
 ├── components/
